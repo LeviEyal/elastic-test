@@ -2,6 +2,11 @@ import { FastifyPluginAsyncJsonSchemaToTs } from "@fastify/type-provider-json-sc
 import { LogRecord } from "@/types/LogRecord";
 import * as logsService from "./logs.service";
 
+/**
+ * Defines the logs route for handling log records.
+ *
+ * @param app - The Fastify instance.
+ */
 export const logsRoute: FastifyPluginAsyncJsonSchemaToTs = async (app) => {
   app.route({
     method: "POST",
