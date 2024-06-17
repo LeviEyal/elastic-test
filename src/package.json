@@ -1,24 +1,30 @@
 {
   "name": "src",
   "version": "1.0.0",
-  "description": "This project was bootstrapped with Fastify-CLI.",
-  "main": "app.js",
+  "description": "",
+  "main": "index.js",
   "scripts": {
-    "test": "node --test test/**/*.test.js",
-    "dev": "fastify start -w -l info -P app.js",
-    "start": "fastify start -l info app.js",
-    "build": "rm -rf dist && tsc --project tsconfig.json && tsc-alias -p tsconfig.json"
+    "dev": "ts-node-dev -r tsconfig-paths/register index.ts",
+    "start": "ts-node --transpileOnly -r tsconfig-paths/register dist/app.js | pino-pretty --colorize",
+    "build": "rm -rf dist && tsc --project tsconfig.json && tsc-alias -p tsconfig.json",
+    "server": "nodemon app.ts",
+    "add-logs": "ts-node --transpileOnly -r tsconfig-paths/register ./scripts/logAccessFiles.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@elastic/elasticsearch": "^8.13.1",
-    "fastify": "^4.26.1",
-    "fastify-plugin": "^4.0.0",
     "@fastify/autoload": "^5.0.0",
+    "@fastify/elasticsearch": "^3.1.0",
     "@fastify/sensible": "^5.0.0",
-    "fastify-cli": "^6.2.1"
+    "@fastify/swagger": "^8.14.0",
+    "@fastify/swagger-ui": "^4.0.0",
+    "@fastify/type-provider-json-schema-to-ts": "^3.0.0",
+    "fastify": "^4.28.0",
+    "fastify-cli": "^6.2.1",
+    "fastify-plugin": "^4.0.0",
+    "typescript": "^5.4.5"
   },
   "devDependencies": {
     "@jest/globals": "^29.7.0",
@@ -28,6 +34,7 @@
     "ts-jest": "^29.1.4",
     "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
+    "tsc-alias": "^1.8.10",
     "tsconfig-paths": "^4.2.0"
   },
   "directories": {

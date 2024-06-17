@@ -1,53 +1,45 @@
-Task:
+# Elastic Search & Node.js API
 
-Fill elasticsearch with data from assets folder.
-Parse the text files using this logic:
+This is a simple API that uses elastic search to store and retrieve logs.
 
-1672896929.432 1295 185.250.242.119 TCP_TUNNEL/200 5397 CONNECT api.twitter.com:443 dogansahin-dc-any HIER_DIRECT/api.twitter.com - 202.142.72.26 1785 15.235.51.169 104.244.42.130
+# Running instructions
 
-0 element - timestamp
-4 element - total size
-6 element - url
-7 element - customer name
+1. Clone the repository
 
-Create a web server that has the following endpoints:
+2. Run the elastic search server
 
-POST /insert
-GET /aggregate
+```bash
+docker compose -f ./dev/docker-compose.yml up -d elasticsearch
+```
 
-Insert endpoint:
+3. Run the following command to install the required packages
 
-- Should accept json data
-- Insert data into elasticsearch
-- Performance is key, should be optimized to insert large amounts of data.
-- should return 200 if successful
+```bash
+cd src
+pnpm install
+pnpm build
+pnpm start
+```
 
-Aggregate endpoint:
+4. Run the script to create the index and add the data
 
-- Should accept:
+```bash
+cd src
+pnpm run add-logs
+```
 
-* Date range (Filter by date)
-* Customer name(Filter by customer - optional)
+4. Open the browser and navigate to `http://localhost:8080/` to view the swagger documentation
 
-- Should return aggregated by customer name, date and url.
+# Screenshots
 
-* Total request size
-* Total log records
+![alt text](image.png)
+![alt text](image-1.png)
+![alt text](image-3.png)
 
-Example output:
-[
-{
-"customer_name": "dogansahin-dc-any",
-"date": "2024-06-01",
-"url": "api.twitter.com",
-"total_requests_size": 100000,
-"requests_count": 1000
-},
-{
-"customer_name": "customer 2",
-"date": "2024-06-01",
-"url": "other domain",
-"total_requests_size": 999,
-"requests_count": 99
-},
-]
+# Technologies used
+
+1. Node.js
+2. Elastic Search
+3. TypeScript
+4. Fastify
+5. Pino
