@@ -1,8 +1,6 @@
 import { FastifyPluginAsyncJsonSchemaToTs } from "@fastify/type-provider-json-schema-to-ts";
-import {
-  AggregatedLogs,
-  LogRecord,
-} from "@/types/LogRecord";
+import { LogRecord } from "@/types/LogRecord";
+import * as logsService from "./logs.service";
 
 export const logsRoute: FastifyPluginAsyncJsonSchemaToTs = async (app) => {
   app.route({
@@ -19,24 +17,10 @@ export const logsRoute: FastifyPluginAsyncJsonSchemaToTs = async (app) => {
         },
       },
     },
-    handler: async (request, reply) => {
+    handler: async (request) => {
       const logRecord = request.body as LogRecord;
-      try {
-        await app.elastic.index<LogRecord>({
-          index: "logs",
-          document: {
-            customer: logRecord.customer,
-            date: new Date(logRecord.date),
-            size: logRecord.size,
-            url: logRecord.url,
-          },
-        });
-
-        return { success: true };
-      } catch (error) {
-        console.error(error);
-        throw error;
-      }
+      await logsService.insert(app, logRecord);
+      return { success: true };
     },
   });
 
@@ -76,78 +60,8 @@ export const logsRoute: FastifyPluginAsyncJsonSchemaToTs = async (app) => {
         customer: string;
       };
 
-      try {
-        const resBody = await app.elastic.search<
-          AggregatedLogs,
-          AggregatedLogs
-        >({
-          index: "logs",
-          query: {
-            bool: {
-              must: [
-                { range: { date: { gte: from, lte: to } } },
-                ...(customer ? [{ match: { customer: customer } }] : []),
-              ],
-            },
-          },
-          aggs: {
-            customer_name: {
-              terms: {
-                field: "customer.keyword",
-              },
-              aggs: {
-                date: {
-                  date_histogram: {
-                    field: "date",
-                    calendar_interval: "day",
-                    format: "yyyy-MM-dd",
-                  },
-                  aggs: {
-                    url: {
-                      terms: {
-                        field: "url.keyword",
-                      },
-                      aggs: {
-                        total_requests_size: {
-                          sum: {
-                            field: "size",
-                          },
-                        },
-                        requests_count: {
-                          value_count: {
-                            field: "size",
-                          },
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        });
-
-        const result = resBody.aggregations?.customer_name.buckets.map(
-          (customerBucket) => {
-            return customerBucket.date.buckets.map((dateBucket) => {
-              return dateBucket.url.buckets.map((urlBucket) => {
-                return {
-                  customer_name: customerBucket.key,
-                  date: dateBucket.key_as_string,
-                  url: urlBucket.key,
-                  total_requests_size: urlBucket.total_requests_size.value,
-                  requests_count: urlBucket.requests_count.value,
-                };
-              });
-            });
-          }
-        );
-
-        return result?.flat(2);
-      } catch (error) {
-        console.error(error);
-        throw error;
-      }
+      const res = await logsService.aggregate(app, from, to, customer);
+      return res;
     },
   });
 };
