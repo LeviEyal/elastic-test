@@ -1,15 +1,15 @@
 import { AggregatedLogs, LogRecord } from "@/types/LogRecord";
-import { FastifyInstance } from "fastify";
+import { Client } from "@elastic/elasticsearch";
 
 /**
  * Inserts a log record into the Elasticsearch index.
  *
- * @param app - The Fastify instance.
+ * @param elastic - The Elasticsearch client.
  * @param logRecord - The log record to be inserted.
  * @returns A Promise that resolves to the result of the insertion.
  */
-export const insert = async (app: FastifyInstance, logRecord: LogRecord) => {
-  return app.elastic.index({
+export const insert = async (elastic: Client, logRecord: LogRecord) => {
+  return elastic.index({
     index: "logs",
     body: logRecord,
   });
@@ -18,7 +18,7 @@ export const insert = async (app: FastifyInstance, logRecord: LogRecord) => {
 /**
  * Retrieves aggregated logs based on the specified parameters.
  *
- * @param app - The Fastify instance.
+ * @param elastic - The Elasticsearch client.
  * @param from - The start date for the logs aggregation.
  * @param to - The end date for the logs aggregation.
  * @param customer - The customer name to filter the logs by (optional).
@@ -26,19 +26,19 @@ export const insert = async (app: FastifyInstance, logRecord: LogRecord) => {
  * @throws If an error occurs while retrieving the logs.
  */
 export const aggregate = async (
-  app: FastifyInstance,
+  elastic: Client,
   from: string,
   to: string,
   customer: string
 ) => {
   try {
-    const resBody = await app.elastic.search<AggregatedLogs, AggregatedLogs>({
+    const resBody = await elastic.search<AggregatedLogs, AggregatedLogs>({
       index: "logs",
       query: {
         bool: {
           must: [
+            ...(customer ? [{ term: { "customer.keyword": customer } }] : []),
             { range: { date: { gte: from, lte: to } } },
-            ...(customer ? [{ match: { customer: customer } }] : []),
           ],
         },
       },

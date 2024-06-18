@@ -24,7 +24,7 @@ export const logsRoute: FastifyPluginAsyncJsonSchemaToTs = async (app) => {
     },
     handler: async (request) => {
       const logRecord = request.body as LogRecord;
-      await logsService.insert(app, logRecord);
+      await logsService.insert(app.elastic, logRecord);
       return { success: true };
     },
   });
@@ -65,7 +65,7 @@ export const logsRoute: FastifyPluginAsyncJsonSchemaToTs = async (app) => {
         customer: string;
       };
 
-      const res = await logsService.aggregate(app, from, to, customer);
+      const res = await logsService.aggregate(app.elastic, from, to, customer);
       return res;
     },
   });
